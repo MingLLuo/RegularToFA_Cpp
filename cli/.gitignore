@@ -1,0 +1,7 @@
+.idea/*
+.vscode/*
+cmake-build-debug/*
+.DS_Store
+*/.DS_Store
+*/.idea/*
+*/.vscode/*
