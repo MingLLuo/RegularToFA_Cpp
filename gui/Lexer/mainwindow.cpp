@@ -8,10 +8,9 @@
 #include <QTableView>
 #include <QStandardItemModel>
 #include <QFileDialog>
+
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::MainWindow), regexString("")
-{
+        : QMainWindow(parent), ui(new Ui::MainWindow), regexString("") {
     ui->setupUi(this);
     ui->table->setShowGrid(true);
     ui->table->setGridStyle(Qt::SolidLine);
@@ -24,8 +23,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->spinBox->setMaximum(0);
 }
 
-MainWindow::~MainWindow()
-{
+MainWindow::~MainWindow() {
     delete ui;
 }
 
@@ -33,9 +31,8 @@ bool MainWindow::checkEmptyRegex() {
     return this->regexString == "";
 }
 
-void MainWindow::on_regApplyB_clicked()
-{
-    this->regexString =  ui->regExpInput->toPlainText();
+void MainWindow::on_regApplyB_clicked() {
+    this->regexString = ui->regExpInput->toPlainText();
     this->regexVector.clear();
     std::string s = "", singleReg = "";
     if (this->regexString.toStdString().empty()) {
@@ -81,16 +78,16 @@ void displayNFAInTableView(const std::shared_ptr<NFA> &nfa, QTableView *tableVie
     model->setHorizontalHeaderItem(2, new QStandardItem(QString("Final")));
 
     int column = 3;
-    for (char symbol : nfa->symbols) {
+    for (char symbol: nfa->symbols) {
         if (symbol == 0) {
             model->setHorizontalHeaderItem(column++, new QStandardItem(QString("ε")));
-                continue;
+            continue;
         }
         model->setHorizontalHeaderItem(column++, new QStandardItem(QString(symbol)));
     }
 
     int row = 0;
-    for (const auto &state : nfa->states) {
+    for (const auto &state: nfa->states) {
         // Set state ID
         model->setItem(row, 0, new QStandardItem(QString::number(state->id)));
 
@@ -101,9 +98,9 @@ void displayNFAInTableView(const std::shared_ptr<NFA> &nfa, QTableView *tableVie
 
         // Set transition symbols
         column = 3;
-        for (char symbol : nfa->symbols) {
+        for (char symbol: nfa->symbols) {
             std::string transitions;
-            for (const auto &nextState : state->transitions[symbol]) {
+            for (const auto &nextState: state->transitions[symbol]) {
                 transitions += std::to_string(nextState->id) + ",";
             }
             transitions = transitions.empty() ? "-" : transitions.substr(0, transitions.size() - 1);
@@ -130,12 +127,12 @@ void displayDFAInTableView(const std::shared_ptr<DFA> &dfa, QTableView *tableVie
     model->setHorizontalHeaderItem(2, new QStandardItem(QString("Final")));
 
     int column = 3;
-    for (char symbol : dfa->symbols) {
+    for (char symbol: dfa->symbols) {
         model->setHorizontalHeaderItem(column++, new QStandardItem(QString(symbol)));
     }
 
     int row = 0;
-    for (const auto &state : dfa->dfa_states) {
+    for (const auto &state: dfa->dfa_states) {
         if (state == nullptr)
             continue;
         // Set state ID
@@ -148,7 +145,7 @@ void displayDFAInTableView(const std::shared_ptr<DFA> &dfa, QTableView *tableVie
 
         // Set transition symbols
         column = 3;
-        for (char symbol : dfa->symbols) {
+        for (char symbol: dfa->symbols) {
             if (symbol == 0) {
                 model->setItem(row, column++, new QStandardItem(""));  // Empty cell for ε transitions
                 continue;
@@ -159,7 +156,7 @@ void displayDFAInTableView(const std::shared_ptr<DFA> &dfa, QTableView *tableVie
             if (transition != state->transitions.end() && transition->second != nullptr) {
                 if (!transition->second->nfa_states.empty()) {
                     // for un minimize
-                    for (const auto &nextState : transition->second->nfa_states) {
+                    for (const auto &nextState: transition->second->nfa_states) {
                         transitions += std::to_string(nextState->id) + ",";
                     }
                 } else {
@@ -179,10 +176,7 @@ void displayDFAInTableView(const std::shared_ptr<DFA> &dfa, QTableView *tableVie
 }
 
 
-
-
-void MainWindow::on_pushB1_clicked()
-{
+void MainWindow::on_pushB1_clicked() {
     if (this->checkEmptyRegex()) {
         return;
     }
@@ -190,7 +184,7 @@ void MainWindow::on_pushB1_clicked()
     if (ui->checkALL->isChecked()) {
         s = this->singleReg.toStdString();
     } else {
-        s= this->regexVector[this->regexIndex];
+        s = this->regexVector[this->regexIndex];
     }
     flush();
     auto nfaConvert = stringToRegExp(s)->toNFA();
@@ -199,9 +193,7 @@ void MainWindow::on_pushB1_clicked()
 }
 
 
-
-void MainWindow::on_pushB2_clicked()
-{
+void MainWindow::on_pushB2_clicked() {
     if (this->checkEmptyRegex()) {
         return;
     }
@@ -209,7 +201,7 @@ void MainWindow::on_pushB2_clicked()
     if (ui->checkALL->isChecked()) {
         s = this->singleReg.toStdString();
     } else {
-        s= this->regexVector[this->regexIndex];
+        s = this->regexVector[this->regexIndex];
     }
     flush();
     auto nfaConvert = stringToRegExp(s)->toNFA();
@@ -221,8 +213,7 @@ void MainWindow::on_pushB2_clicked()
 }
 
 
-void MainWindow::on_pushB3_clicked()
-{
+void MainWindow::on_pushB3_clicked() {
     if (this->checkEmptyRegex()) {
         return;
     }
@@ -230,7 +221,7 @@ void MainWindow::on_pushB3_clicked()
     if (ui->checkALL->isChecked()) {
         s = this->singleReg.toStdString();
     } else {
-        s= this->regexVector[this->regexIndex];
+        s = this->regexVector[this->regexIndex];
     }
     flush();
     auto nfaConvert = stringToRegExp(s)->toNFA();
@@ -243,8 +234,7 @@ void MainWindow::on_pushB3_clicked()
 }
 
 
-void MainWindow::on_pushB4_clicked()
-{
+void MainWindow::on_pushB4_clicked() {
     if (this->checkEmptyRegex()) {
         return;
     }
@@ -252,7 +242,7 @@ void MainWindow::on_pushB4_clicked()
     if (ui->checkALL->isChecked()) {
         s = this->singleReg.toStdString();
     } else {
-        s= this->regexVector[this->regexIndex];
+        s = this->regexVector[this->regexIndex];
     }
     flush();
     auto nfaConvert = stringToRegExp(s)->toNFA();
@@ -269,8 +259,7 @@ void MainWindow::on_pushB4_clicked()
 }
 
 
-void MainWindow::on_openB_clicked()
-{
+void MainWindow::on_openB_clicked() {
     QString selectedFilePath = QFileDialog::getOpenFileName(this, "Open a file", "", "All Files (*.*)");
     if (selectedFilePath.isEmpty()) {
         return;
@@ -287,8 +276,7 @@ void MainWindow::on_openB_clicked()
 }
 
 
-void MainWindow::on_saveB_clicked()
-{
+void MainWindow::on_saveB_clicked() {
     QString selectedFilePath = QFileDialog::getSaveFileName(this, "Save a file", "", "All Files (*.*)");
     if (selectedFilePath.isEmpty()) {
         return;
@@ -305,8 +293,7 @@ void MainWindow::on_saveB_clicked()
 }
 
 
-void MainWindow::on_spinBox_valueChanged(int arg1)
-{
+void MainWindow::on_spinBox_valueChanged(int arg1) {
     this->regexIndex = arg1 - 1;
     if (ui->checkALL->isChecked()) {
         ui->regText->setPlainText(this->singleReg);
@@ -316,8 +303,7 @@ void MainWindow::on_spinBox_valueChanged(int arg1)
 }
 
 
-void MainWindow::on_codeGenerate_clicked()
-{
+void MainWindow::on_codeGenerate_clicked() {
     QString selectedFilePath = QFileDialog::getSaveFileName(this, "Save a file", "", "All Files (*.*)");
     if (selectedFilePath.isEmpty()) {
         return;
@@ -335,7 +321,7 @@ void MainWindow::on_codeGenerate_clicked()
     if (ui->checkALL->isChecked()) {
         s = this->singleReg.toStdString();
     } else {
-        s= this->regexVector[this->regexIndex];
+        s = this->regexVector[this->regexIndex];
     }
     flush();
     auto nfaConvert = stringToRegExp(s)->toNFA();

@@ -56,9 +56,13 @@ std::shared_ptr<RegExp> tokensToRegExp(const std::vector<Token> &tokens) {
         switch (token.type) {
             case TokenType::Char:
                 regexStack.push(std::make_shared<RegExp>(token.value));
+                while (operatorStack.size() > 1 && precedence(operatorStack.top()) == 0)
+                    applyOperator();
                 break;
             case TokenType::Epsilon:
                 regexStack.push(std::make_shared<RegExp>());
+                while (operatorStack.size() > 1 && precedence(operatorStack.top()) == 0)
+                    applyOperator();
                 break;
             case TokenType::Union:
             case TokenType::Star:
@@ -68,8 +72,7 @@ std::shared_ptr<RegExp> tokensToRegExp(const std::vector<Token> &tokens) {
                     throw std::runtime_error("Invalid expression");
                 }
                 while (!operatorStack.empty() &&
-                       operatorStack.top() != TokenType::LParen &&
-                       precedence(operatorStack.top()) >= precedence(token.type)) {
+                       operatorStack.top() != TokenType::LParen) {
                     applyOperator();
                 }
                 operatorStack.push(token.type);

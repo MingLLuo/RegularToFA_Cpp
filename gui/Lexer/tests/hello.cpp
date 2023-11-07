@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 
-void state7(char inputSymbol, int& currentState) {
+void state7(char inputSymbol, int &currentState) {
     if (inputSymbol == 'b') {
         currentState = 9;
         return;
@@ -9,7 +9,7 @@ void state7(char inputSymbol, int& currentState) {
     currentState = -1; // Invalid transition
 }
 
-void state8(char inputSymbol, int& currentState) {
+void state8(char inputSymbol, int &currentState) {
     if (inputSymbol == 'a') {
         currentState = 7;
         return;
@@ -21,7 +21,7 @@ void state8(char inputSymbol, int& currentState) {
     currentState = -1; // Invalid transition
 }
 
-void state9(char inputSymbol, int& currentState) {
+void state9(char inputSymbol, int &currentState) {
     if (inputSymbol == 'a') {
         currentState = 7;
         return;
@@ -33,9 +33,9 @@ void state9(char inputSymbol, int& currentState) {
     currentState = -1; // Invalid transition
 }
 
-bool acceptInput(const std::string& input) {
+bool acceptInput(const std::string &input) {
     int currentState = 9;
-    for (char inputSymbol : input) {
+    for (char inputSymbol: input) {
         switch (currentState) {
             case 7:
                 state7(inputSymbol, currentState);

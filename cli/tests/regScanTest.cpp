@@ -5,7 +5,7 @@
 
 void testScanner(const std::string &input) {
     std::cout << "Input: " << input << "\n";
-    std::vector<Token> tokens = tokenize(input);
+    std::vector <Token> tokens = tokenize(input);
     tokenPrint(tokens);
     std::cout << "\n";
 }
