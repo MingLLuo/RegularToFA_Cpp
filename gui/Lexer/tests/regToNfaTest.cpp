@@ -2,8 +2,8 @@
 // Created by MingLLuo on 2023/10/14.
 //
 
-#include "regExp.cpp"
 #include "nfa.cpp"
+#include "regExp.cpp"
 #include "util.h"
 #include <iostream>
 
@@ -51,9 +51,9 @@ int main() {
     flush();
 
     // Test 7: Mult-Test
-    auto regExp1 = stringToRegExp("(a)+d*");
+    auto regExp1 = stringToRegExp("((A|-)?dd*)(.dd*)?((B|e)((1|-)?dd*))?");
     auto nfa1 = regExp1->toNFA();
-    std::cout << "\nNFA for '(a)+d*':\n";
+    std::cout << "\nNFA for 'a|b*':\n";
     printNFA(*nfa1);
     flush();
 

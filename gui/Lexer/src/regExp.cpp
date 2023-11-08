@@ -142,8 +142,8 @@ std::shared_ptr<RegExp> tokensToRegExp(const std::vector<Token> &tokens) {
 }
 
 std::shared_ptr<RegExp> stringToRegExp(const std::string &s) {
-    std::vector<Token> tokens = tokenize(s);
-    //    tokenPrint(tokens);
+    std::vector<Token> tokens = regTokenize(s);
+    //    regTokenPrint(tokens);
     return tokensToRegExp(tokens);
 }
 
@@ -338,5 +338,65 @@ void printNFA(const NFA &nfa) {
                 }
             }
         }
+    }
+}
+
+std::string regExpToString(const std::shared_ptr<RegExp> &regExp) {
+    if (regExp == nullptr)
+        return "";
+    switch (regExp->type) {
+        case RegExp::Type::EmptyString:
+            return "[Empty]";
+        case RegExp::Type::Char:
+            return std::string(1, regExp->c);
+        case RegExp::Type::Union:
+            return "(" + regExpToString(regExp->right) + "|" +
+                   regExpToString(regExp->left) + ")";
+        case RegExp::Type::Ques:
+            return "(" + regExpToString(regExp->right) + ")?";
+        case RegExp::Type::Concat:
+            return regExpToString(regExp->left) + regExpToString(regExp->right);
+        case RegExp::Type::Star:
+            return "(" + regExpToString(regExp->right) + ")*";
+        case RegExp::Type::Plus:
+            return "(" + regExpToString(regExp->right) + ")+";
+        default:
+            throw std::runtime_error("Invalid RegExp type");
+    }
+}
+
+std::string spaces(int count) {
+    return std::string(count, ' ');
+}
+
+// newspace = space + 2
+std::string regExpToStringWithSpace(int space, const std::shared_ptr<RegExp> &regExp) {
+    if (regExp == nullptr) {
+        return "";
+    }
+    switch (regExp->type) {
+        case RegExp::Type::EmptyString:
+            return "[Empty]";
+        case RegExp::Type::Char:
+            return spaces(space) + std::string(1, regExp->c) + "\n";
+        case RegExp::Type::Union:
+            return spaces(space) + "op(|)\n" +
+                   regExpToStringWithSpace(space + 2, regExp->left) +
+                   regExpToStringWithSpace(space + 2, regExp->right);
+        case RegExp::Type::Ques:
+            return spaces(space) + "op(?)\n" +
+                   regExpToStringWithSpace(space + 2, regExp->right);
+        case RegExp::Type::Concat:
+            return spaces(space) + "op(&)\n" +
+                   regExpToStringWithSpace(space + 2, regExp->left) +
+                   regExpToStringWithSpace(space + 2, regExp->right);
+        case RegExp::Type::Star:
+            return spaces(space) + "op(#)\n" +
+                   regExpToStringWithSpace(space + 2, regExp->right);
+        case RegExp::Type::Plus:
+            return spaces(space) + "op(+)\n" +
+                   regExpToStringWithSpace(space + 2, regExp->right);
+        default:
+            throw std::runtime_error("Invalid RegExp type");
     }
 }

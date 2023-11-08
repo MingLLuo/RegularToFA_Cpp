@@ -205,8 +205,8 @@ std::shared_ptr<DFA> DFA::minimizeDFA() {
                 new_partition_map;
 
         for (auto &[partition, states]: partition_map) {
-            if (states.size() <= 1)
-                continue;
+//            if (states.size() <= 1)
+//                continue;
             for (auto inputSymbol: this->symbols) {
                 std::unordered_map<
                         int, std::unordered_set<std::shared_ptr<DFAState>>>
@@ -246,16 +246,17 @@ std::shared_ptr<DFA> DFA::minimizeDFA() {
     new_dfa->symbols = this->symbols;
     new_dfa->symbols.erase(0);
     // Create new states
+    flush();
     for (const auto &[partition, states]: partition_map) {
         int id = fresh();
-        //        // Debug
-        //        std::cout << "Partition " << partition << " {\n";
-        //        for (const auto &state: states) {
-        //            std::cout << "  DFAState Id: " << state->id << std::endl
-        //            << "  Is Final: " << state->is_final << std::endl;
-        //            state->printDFAState();
-        //        }
-        //        std::cout << "}\n" << id << std::endl;
+        // Debug
+        std::cout << "Partition " << partition << " {\n";
+        for (const auto &state: states) {
+            std::cout << "  DFAState Id: " << state->id << std::endl
+                      << "  Is Final: " << state->is_final << std::endl;
+            state->printDFAState();
+        }
+        std::cout << "}\n" << id << std::endl;
         auto new_state = std::make_shared<DFAState>(id);
         for (const auto &state: states) {
             new_state_map[state] = new_state;
