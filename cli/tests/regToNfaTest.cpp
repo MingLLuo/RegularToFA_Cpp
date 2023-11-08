@@ -51,7 +51,7 @@ int main() {
     flush();
 
     // Test 7: Mult-Test
-    auto regExp1 = stringToRegExp("((+|-)?dd*)(.dd*)?((E|e)((+|-)?dd*))?");
+    auto regExp1 = stringToRegExp("((A|-)?dd*)(.dd*)?((B|e)((1|-)?dd*))?");
     auto nfa1 = regExp1->toNFA();
     std::cout << "\nNFA for 'a|b*':\n";
     printNFA(*nfa1);

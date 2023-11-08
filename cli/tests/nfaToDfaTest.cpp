@@ -7,7 +7,7 @@
 
 int main() {
     // (a|b)*b?
-    auto nfaConcat = stringToRegExp("((1|-)?dd*)(.dd*)?((E|e)((1|-)?dd*))?")->toNFA();
+    auto nfaConcat = stringToRegExp("((A|-)?dd*)(.dd*)?((B|e)((A|-)?dd*))?")->toNFA();
     const auto &nfa = nfaConcat;
     printNFA(*nfa);
     // Convert NFA to DFA
@@ -17,7 +17,7 @@ int main() {
 //    dfa->printDFA();
 
     std::cout << "------\n";
-    std::string testSet[] = {"d", "1d", "-d", "ddd", "1dd", "-d.dd", "-d.d", "dE1dd", "d.dE-d"};
+    std::string testSet[] = {"d", "Ad", "-d", "ddd", "Add", "-d.dd", "-d.d", "dBAdd", "d.dB-d"};
     for (const auto &s: testSet) {
         std::cout << "String: " << s;
         dfa->acceptString(s);
