@@ -1,47 +1,9 @@
 //
 // Created by MingLLuo on 2023/10/14.
 //
-#include <iostream>
-#include <string>
-#include <utility>
-#include <vector>
+#include "regScanner.h"
 
-enum class TokenType {
-    Char,
-    Epsilon,
-    Union,
-    Star,
-    PLUS,
-    QUES,
-    LParen,
-    RParen,
-    END
-};
-
-struct Token {
-    TokenType type;
-    char value;
-    std::string charSet;
-
-    Token(TokenType t) : type(t), value('\0') {}
-
-    Token(TokenType t, char v) : type(t), value(v) {}
-
-    Token(TokenType t, std::string set) : type(t), charSet(std::move(set)) {}
-};
-
-class Scanner {
-public:
-    Scanner(std::string input) : str(std::move(input)), pos(0) {}
-
-    Token getNextToken();
-
-private:
-    std::string str;
-    size_t pos;
-};
-
-Token Scanner::getNextToken() {
+Token Scanner::getNextTokenFromStr() {
     if (pos >= str.length())
         return {TokenType::END};
 
@@ -80,24 +42,27 @@ Token Scanner::getNextToken() {
 }
 
 // Function to tokenize input string
-std::vector<Token> tokenize(const std::string &str) {
+std::vector<Token> regTokenize(const std::string &str) {
     std::vector<Token> tokens;
     Scanner scanner(str);
 
-    Token token = scanner.getNextToken();
+    Token token = scanner.getNextTokenFromStr();
     while (token.type != TokenType::END) {
         tokens.push_back(token);
-        token = scanner.getNextToken();
+        token = scanner.getNextTokenFromStr();
     }
 
     return tokens;
 }
 
-void tokenPrint(const std::vector<Token> &tokens) {
+void regTokenPrint(const std::vector<Token> &tokens) {
     for (const auto &token: tokens) {
         switch (token.type) {
             case TokenType::Char:
                 std::cout << "Char: " << token.value << std::endl;
+                break;
+            case TokenType::Concat:
+                std::cout << "Concat" << std::endl;
                 break;
             case TokenType::Epsilon:
                 std::cout << "Epsilon" << std::endl;

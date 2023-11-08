@@ -7,22 +7,29 @@
 
 int main() {
     // (a|b)*b?
-    auto nfaConcat = stringToRegExp("(a|b)*b?")->toNFA();
+    auto nfaConcat = stringToRegExp("((1|-)?dd*)(.dd*)?((E|e)((1|-)?dd*))?")->toNFA();
     const auto &nfa = nfaConcat;
     printNFA(*nfa);
     // Convert NFA to DFA
     flush();
     auto dfa = convertToDFA(nfa);
     // Print the DFA
-    dfa->printDFA();
+//    dfa->printDFA();
 
     std::cout << "------\n";
-
+    std::string testSet[] = {"d", "1d", "-d", "ddd", "1dd", "-d.dd", "-d.d", "dE1dd", "d.dE-d"};
+    for (const auto &s: testSet) {
+        std::cout << "String: " << s;
+        dfa->acceptString(s);
+    }
+    flush();
     auto new_dfa = dfa->minimizeDFA();
     new_dfa->printDFA();
-    new_dfa->acceptString("a");
-    new_dfa->acceptString("ab");
-    new_dfa->acceptString("bb");
+
+    for (const auto &s: testSet) {
+//        std::cout << "String: " << s << " ";
+        new_dfa->acceptString(s);
+    }
     // No need to manually delete, smart pointers handle memory cleanup
 
     return 0;

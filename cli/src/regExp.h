@@ -48,4 +48,12 @@ public:
     std::shared_ptr<RegExp> right;
 };
 
+std::shared_ptr<RegExp> tokensToRegExp(const std::vector<Token> &tokens);
+
+std::shared_ptr<RegExp> stringToRegExp(const std::string &str);
+
+std::string regExpToString(const std::shared_ptr<RegExp> &regExp);
+
+std::string regExpToStringWithSpace(int space, const std::shared_ptr<RegExp> &regExp);
+
 #endif // LEXICAL_REGEXP_H
