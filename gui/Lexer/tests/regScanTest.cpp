@@ -16,7 +16,7 @@ int main() {
     std::string input3 = "(a|b)+";
     std::string input4 = "a*b";
     std::string input5 = "ab";
-    std::string input6 = "a|b*";
+    std::string input6 = "((=|-)?dd*)(.dd*)?((F|e)((=|-)?dd*))?";
 
     testScanner(input1);
     testScanner(input2);

@@ -147,22 +147,18 @@ void displayDFAInTableView(const std::shared_ptr<DFA> &dfa, QTableView *tableVie
         column = 3;
         for (char symbol: dfa->symbols) {
             if (symbol == 0) {
-                model->setItem(row, column++, new QStandardItem(""));  // Empty cell for ε transitions
-                continue;
+                model->setHorizontalHeaderItem(column++, new QStandardItem(QString("ε")));
+                    continue;
             }
+//            if (symbol == 0) {
+//                model->setItem(row, column++, new QStandardItem(""));  // Empty cell for ε transitions
+//                continue;
+//            }
 
             auto transition = state->transitions.find(symbol);
             std::string transitions;
             if (transition != state->transitions.end() && transition->second != nullptr) {
-                if (!transition->second->nfa_states.empty()) {
-                    // for un minimize
-                    for (const auto &nextState: transition->second->nfa_states) {
-                        transitions += std::to_string(nextState->id) + ",";
-                    }
-                } else {
-                    transitions = std::to_string(transition->second->id) + ",";
-                }
-                transitions = transitions.empty() ? "-" : transitions.substr(0, transitions.size() - 1);
+                    transitions += std::to_string(transition->second->id);
             } else {
                 transitions = "-";
             }

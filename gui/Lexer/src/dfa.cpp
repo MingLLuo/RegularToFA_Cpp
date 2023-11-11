@@ -36,7 +36,8 @@ epsilonClosure(const std::set<std::shared_ptr<NFAState>> &states) {
     std::stack<std::shared_ptr<NFAState>> stack;
 
     for (const auto &state: states) {
-        stack.push(state);
+        if (state != nullptr)
+            stack.push(state);
     }
 
     while (!stack.empty()) {
@@ -47,11 +48,12 @@ epsilonClosure(const std::set<std::shared_ptr<NFAState>> &states) {
         const auto &transitions = current->transitions.find(0);
         if (transitions != current->transitions.end()) {
             for (const auto &nextState: transitions->second) {
-                if (closure.find(nextState) == closure.end()) {
+                if (nextState != nullptr && closure.find(nextState) == closure.end()) {
                     closure.insert(nextState);
                     stack.push(nextState);
                 }
             }
+            closure.insert(current);
         }
     }
 
@@ -66,7 +68,8 @@ move(const std::set<std::shared_ptr<NFAState>> &states, char inputSymbol) {
         const auto &transitions = state->transitions.find(inputSymbol);
         if (transitions != state->transitions.end()) {
             for (const auto &nextState: transitions->second) {
-                result.insert(nextState);
+                if (nextState != nullptr)
+                    result.insert(nextState);
             }
         }
     }
@@ -80,13 +83,13 @@ createDFAState(const std::set<std::shared_ptr<NFAState>> &nfaStates) {
 }
 
 std::shared_ptr<DFA> convertToDFA(const std::shared_ptr<NFA> &nfa) {
+    flush();
     // Subset Construction Algorithm
     auto dfa = std::make_shared<DFA>();
     std::map<std::set<std::shared_ptr<NFAState>>, std::shared_ptr<DFAState>>
             dfaStateMap;
 
-    std::set<std::shared_ptr<NFAState>> initialState =
-            epsilonClosure({nfa->start_state});
+    auto initialState = epsilonClosure({nfa->start_state});
     dfa->start_state = createDFAState(initialState);
     dfaStateMap[initialState] = dfa->start_state;
 
@@ -122,7 +125,9 @@ std::shared_ptr<DFA> convertToDFA(const std::shared_ptr<NFA> &nfa) {
                 dfaStateMap[epsilonTransitions] = newState;
                 stack.push(newState);
             }
-
+            if (inputSymbol == '\0') {
+                continue;
+            }
             dfaState->transitions[inputSymbol] =
                     dfaStateMap[epsilonTransitions];
         }
@@ -133,6 +138,33 @@ std::shared_ptr<DFA> convertToDFA(const std::shared_ptr<NFA> &nfa) {
     }
     dfa->symbols = nfa->symbols;
     dfa->symbols.erase(0);
+
+    // unpoint clean, use bfs
+    // create new transistion map
+    flush();
+    std::set<std::shared_ptr<DFAState>> visited;
+    std::stack<std::shared_ptr<DFAState>> stack2;
+    std::map<std::shared_ptr<DFAState>, int> newIdMap;
+    stack2.push(dfa->start_state);
+    visited.insert(dfa->start_state);
+    while (!stack2.empty()) {
+        auto currentState = stack2.top();
+        stack2.pop();
+        newIdMap[currentState] = fresh();
+        currentState->id = newIdMap[currentState];
+        for (const auto &transition: currentState->transitions) {
+            if (visited.find(transition.second) == visited.end()) {
+                visited.insert(transition.second);
+                stack2.push(transition.second);
+            }
+        }
+    }
+    dfa->dfa_states = visited;
+    for (auto &state: dfa->dfa_states) {
+        for (auto &transition: state->transitions) {
+            transition.second->id = newIdMap[transition.second];
+        }
+    }
     return dfa;
 }
 
@@ -191,11 +223,11 @@ std::shared_ptr<DFA> DFA::minimizeDFA() {
     std::unordered_map<std::shared_ptr<DFAState>, int> state_to_partition;
     std::unordered_map<int, std::unordered_set<std::shared_ptr<DFAState>>>
             partition_map;
-
+    state_to_partition[nullptr] = -1;
     int current_partition = 2;
     // Partition the states into final and non-final states
     for (const auto &state: this->dfa_states) {
-        state_to_partition[state] = state->is_final ? 1 : 0;
+        state_to_partition[state] = (state->is_final) ? 1 : 0;
         partition_map[state_to_partition[state]].insert(state);
     }
     bool changed = true;
@@ -205,8 +237,9 @@ std::shared_ptr<DFA> DFA::minimizeDFA() {
                 new_partition_map;
 
         for (auto &[partition, states]: partition_map) {
-//            if (states.size() <= 1)
-//                continue;
+            if (states.size() <= 1) {
+                continue;
+            }
             for (auto inputSymbol: this->symbols) {
                 std::unordered_map<
                         int, std::unordered_set<std::shared_ptr<DFAState>>>
@@ -217,6 +250,16 @@ std::shared_ptr<DFA> DFA::minimizeDFA() {
                     temp_partition_map[state_to_partition[next_state]].insert(
                             state);
                 }
+                if (temp_partition_map.find(state_to_partition[nullptr]) != temp_partition_map.end()) {
+                    // if there is a nullptr, and current partition is in map, keep it in same partition
+                    if (temp_partition_map.find(partition) != temp_partition_map.end()) {
+                        temp_partition_map[partition].insert(temp_partition_map[state_to_partition[nullptr]].begin(),
+                                                             temp_partition_map[state_to_partition[nullptr]].end());
+                        temp_partition_map.erase(state_to_partition[nullptr]);
+                    }
+                }
+                // if size == 1, we won't change the partition
+                // tmp_map size is 1: point to themselves or other same partition
                 if (temp_partition_map.size() > 1) {
                     // next state of them are not in the same partition
                     // remove the old partition, and add new partition
@@ -232,33 +275,37 @@ std::shared_ptr<DFA> DFA::minimizeDFA() {
                     }
                     break;
                 }
-                // if size == 1, we won't change the partition
             }
             if (changed)
                 break;
         }
     }
 
-    // Create new DFA
+// Create new DFA
     auto new_dfa = std::make_shared<DFA>();
     std::map<std::shared_ptr<DFAState>, std::shared_ptr<DFAState>>
             new_state_map;
     new_dfa->symbols = this->symbols;
-    new_dfa->symbols.erase(0);
-    // Create new states
+// Create new states
     flush();
     for (const auto &[partition, states]: partition_map) {
         int id = fresh();
-        // Debug
+// Debug
         std::cout << "Partition " << partition << " {\n";
-        for (const auto &state: states) {
+        for (
+            const auto &state
+                : states) {
             std::cout << "  DFAState Id: " << state->id << std::endl
-                      << "  Is Final: " << state->is_final << std::endl;
+                      << "  Is Final: " << state->is_final <<
+                      std::endl;
             state->printDFAState();
+//            state->printTransitions();
         }
         std::cout << "}\n" << id << std::endl;
         auto new_state = std::make_shared<DFAState>(id);
-        for (const auto &state: states) {
+        for (
+            const auto &state
+                : states) {
             new_state_map[state] = new_state;
             if (state == this->start_state)
                 new_dfa->start_state = new_state;
@@ -268,10 +315,12 @@ std::shared_ptr<DFA> DFA::minimizeDFA() {
         new_dfa->dfa_states.insert(new_state);
     }
 
-    // after partition, we can create new transitions
+// after partition, we can create new transitions
     for (const auto &[partition, states]: partition_map) {
-        // Create transitions
-        for (const auto &state: states) {
+// Create transitions
+        for (
+            const auto &state
+                : states) {
             for (const auto &[inputSymbol, nextState]: state->transitions) {
                 if (nextState == nullptr || inputSymbol == '\0') {
                     continue;

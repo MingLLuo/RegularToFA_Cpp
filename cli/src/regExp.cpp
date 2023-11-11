@@ -158,19 +158,21 @@ void addETransitions(const std::vector<std::shared_ptr<NFAState>> &src_list,
 std::shared_ptr<NFA> concatNFAs(const std::shared_ptr<NFA> &nfa1,
                                 const std::shared_ptr<NFA> &nfa2) {
     auto nfaConcat = std::make_shared<NFA>();
-
     // Copy states from nfa1
-    nfaConcat->mergeStatesFromNFA(nfa1);
-    nfaConcat->start_state = nfa1->start_state;
+    nfaConcat->copyCleanNFA(nfa1, true);
+
+    auto copy_nfa2 = std::make_shared<NFA>();
+    copy_nfa2->copyCleanNFA(nfa2, true);
+
     // Add epsilon transitions from final states of nfa1 to nfa2's start state
-    for (const auto &state: nfa1->states) {
+    for (const auto &state: nfaConcat->states) {
         if (state->is_final)
-            addETransitions({state}, nfa2->start_state);
+            addETransitions({state}, copy_nfa2->start_state);
         state->is_final = false;
     }
 
     // Copy states from nfa2
-    nfaConcat->mergeStatesFromNFA(nfa2);
+    nfaConcat->mergeStatesFromNFA(copy_nfa2);
 
     return nfaConcat;
 }
@@ -178,23 +180,21 @@ std::shared_ptr<NFA> concatNFAs(const std::shared_ptr<NFA> &nfa1,
 std::shared_ptr<NFA> unionNFAs(const std::shared_ptr<NFA> &nfa1,
                                const std::shared_ptr<NFA> &nfa2) {
     auto nfaUnion = std::make_shared<NFA>();
+    auto copy_nfa1 = std::make_shared<NFA>();
+    auto copy_nfa2 = std::make_shared<NFA>();
+    copy_nfa1->copyCleanNFA(nfa1, true);
+    copy_nfa2->copyCleanNFA(nfa2, true);
 
     auto start_state = std::make_shared<NFAState>(fresh());
     nfaUnion->states.insert(start_state);
+    nfaUnion->start_state = start_state;
 
     // Add epsilon transitions from the new start state to the start states of
     // nfa1 and nfa2
-    addETransitions({start_state}, nfa1->start_state);
-    addETransitions({start_state}, nfa2->start_state);
-
-    // Copy states from nfa1
-    nfaUnion->mergeStatesFromNFA(nfa1);
-
-    // Copy states from nfa2
-    nfaUnion->mergeStatesFromNFA(nfa2);
-
-    nfaUnion->start_state = start_state;
-
+    addETransitions({start_state}, copy_nfa1->start_state);
+    addETransitions({start_state}, copy_nfa2->start_state);
+    nfaUnion->mergeStatesFromNFA(copy_nfa1);
+    nfaUnion->mergeStatesFromNFA(copy_nfa2);
     return nfaUnion;
 }
 
@@ -202,11 +202,10 @@ std::shared_ptr<NFA> starNFA(const std::shared_ptr<NFA> &nfa) {
     auto nfaStar = std::make_shared<NFA>();
 
     // Copy states from the original NFA
-    nfaStar->mergeStatesFromNFA(nfa);
-    nfaStar->start_state = nfa->start_state;
+    nfaStar->copyCleanNFA(nfa, true);
 
     //  Add epsilon transitions to the original start state
-    for (const auto &state: nfa->states) {
+    for (const auto &state: nfaStar->states) {
         if (state->is_final && state != nfaStar->start_state)
             addETransitions({state}, nfaStar->start_state);
     }
@@ -219,18 +218,16 @@ std::shared_ptr<NFA> plusNFA(const std::shared_ptr<NFA> &nfa) {
     auto nfaPlus = std::make_shared<NFA>();
 
     // Copy states from the original NFA
-    nfaPlus->mergeStatesFromNFA(nfa);
-    nfaPlus->start_state = nfa->start_state;
+    nfaPlus->copyCleanNFA(nfa, true);
     // Create a new start state and
     // add epsilon transitions to the original start state
-    auto endState = std::make_shared<NFAState>(fresh());
+    auto endState = std::make_shared<NFAState>(fresh(), true);
 
-    for (const auto &state: nfa->states) {
+    for (const auto &state: nfaPlus->states) {
         if (state->is_final)
             addETransitions({state}, endState);
         state->is_final = false;
     }
-    endState->is_final = true;
     addETransitions({endState}, nfaPlus->start_state);
     nfaPlus->states.insert(endState);
 
@@ -240,20 +237,19 @@ std::shared_ptr<NFA> plusNFA(const std::shared_ptr<NFA> &nfa) {
 std::shared_ptr<NFA> quesNFA(const std::shared_ptr<NFA> &nfa) {
     auto nfaQues = std::make_shared<NFA>();
 
-    nfaQues->mergeStatesFromNFA(nfa);
-    nfaQues->start_state = nfa->start_state;
+    nfaQues->copyCleanNFA(nfa, true);
 
     auto start_state = std::make_shared<NFAState>(fresh());
     auto final_state = std::make_shared<NFAState>(fresh(), true);
 
     addETransitions({start_state}, nfaQues->start_state);
+    addETransitions({start_state}, final_state);
 
-    for (const auto &state: nfa->states) {
+    for (const auto &state: nfaQues->states) {
         if (state->is_final)
             addETransitions({state}, final_state);
+        state->is_final = false;
     }
-
-    addETransitions({start_state}, final_state);
 
     nfaQues->states.insert(start_state);
     nfaQues->states.insert(final_state);

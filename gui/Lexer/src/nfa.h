@@ -8,6 +8,8 @@
 #include <memory>
 #include <set>
 #include <unordered_map>
+#include <map>
+#include "util.h"
 
 class NFAState {
 public:
@@ -30,6 +32,8 @@ public:
     ~NFA() = default;
 
     void mergeStatesFromNFA(const std::shared_ptr<NFA> &nfa);
+
+    void copyCleanNFA(const std::shared_ptr<NFA> &nfa, bool withFinal);
 
     void copySymbols(const std::shared_ptr<NFA> &nfa);
 };
