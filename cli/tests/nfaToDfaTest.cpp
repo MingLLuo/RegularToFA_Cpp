@@ -6,19 +6,17 @@
 #include "regExp.cpp"
 
 int main() {
-    // (a|b)*b?
-    auto nfaConcat = stringToRegExp("((A|-)?dd*)(.dd*)?((B|e)((A|-)?dd*))?")->toNFA();
+    auto nfaConcat = stringToRegExp("((=|-)?dd*)(.dd*)?((F|e)((=|-)?dd*))?")->toNFA();
     const auto &nfa = nfaConcat;
     // Convert NFA to DFA
     flush();
     auto dfa = convertToDFA(nfa);
     // Print the DFA
-//    dfa->printDFA();
+    dfa->printDFA();
 
     std::cout << "------\n";
-    std::string testSet[] = {"d", "Ad", "-d", "ddd", "Add", "-d.dd", "--d.d", "dBAdd", "d.dB-d", "d.d--d-d"};
+    std::string testSet[] = {"dd", "=d", "-d", "--d.dd", "ddd", "=dd", "-d.dd", "--d.d", "dF=dd", "d.dF-d", "d.d--d-d"};
     for (const auto &s: testSet) {
-        std::cout << "String: " << s;
         dfa->acceptString(s);
     }
     flush();
@@ -26,10 +24,8 @@ int main() {
     new_dfa->printDFA();
 
     for (const auto &s: testSet) {
-//        std::cout << "String: " << s << " ";
         new_dfa->acceptString(s);
     }
-    // No need to manually delete, smart pointers handle memory cleanup
 
     return 0;
 }

@@ -250,14 +250,6 @@ std::shared_ptr<DFA> DFA::minimizeDFA() {
                     temp_partition_map[state_to_partition[next_state]].insert(
                             state);
                 }
-                if (temp_partition_map.find(state_to_partition[nullptr]) != temp_partition_map.end()) {
-                    // if there is a nullptr, and current partition is in map, keep it in same partition
-                    if (temp_partition_map.find(partition) != temp_partition_map.end()) {
-                        temp_partition_map[partition].insert(temp_partition_map[state_to_partition[nullptr]].begin(),
-                                                             temp_partition_map[state_to_partition[nullptr]].end());
-                        temp_partition_map.erase(state_to_partition[nullptr]);
-                    }
-                }
                 // if size == 1, we won't change the partition
                 // tmp_map size is 1: point to themselves or other same partition
                 if (temp_partition_map.size() > 1) {
