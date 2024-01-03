@@ -44,7 +44,13 @@ std::string generateLexer(const std::shared_ptr<DFA> &dfa) {
     code << "        if (currentState == -1)\n";
     code << "            return false;\n";
     code << "    }\n\n";
-    code << "    return currentState == " << dfa->start_state->id << ";\n";
+    for (const auto &state: dfa->dfa_states) {
+        if (state->is_final) {
+            code << "    if (currentState == " << state->id << ")\n";
+            code << "        return true;\n";
+        }
+    }
+    code << "    return false;\n";
     code << "}\n\n";
     code << "int main() {\n";
     code << "    std::string input;\n";

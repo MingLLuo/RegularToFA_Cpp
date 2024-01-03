@@ -233,8 +233,6 @@ std::shared_ptr<DFA> DFA::minimizeDFA() {
     bool changed = true;
     while (changed) {
         changed = false;
-        std::unordered_map<int, std::unordered_set<std::shared_ptr<DFAState>>>
-                new_partition_map;
 
         for (auto &[partition, states]: partition_map) {
             if (states.size() <= 1) {
